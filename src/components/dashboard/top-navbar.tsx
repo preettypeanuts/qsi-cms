@@ -24,7 +24,7 @@ export function TopNavbar({
   title = "Dasbor",
 }: TopNavbarProps) {
   return (
-    <header className="flex flex-col gap-4 border-slate-200 border-b bg-white/80 px-4 py-4 backdrop-blur sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+    <header className="flex shrink-0 flex-col gap-4 border-slate-200 border-b bg-white/80 px-4 py-4 backdrop-blur sm:px-6 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"

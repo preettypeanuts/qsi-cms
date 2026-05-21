@@ -22,7 +22,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             <span className="sr-only">Close menu</span>
           </Button>
         </div>
-        <DashboardSidebar />
+        <DashboardSidebar allowCollapse={false} />
       </div>
     </div>
   );

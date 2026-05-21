@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Dasbor CMS Sertifikasi",
   description: "Aplikasi pengelolaan data sertifikat",
+  icons: {
+    apple: "/logo.png",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+  },
 };
 
 export default function RootLayout({

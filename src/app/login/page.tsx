@@ -1,6 +1,7 @@
 "use client";
 
-import { LockKeyhole, ShieldCheck } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -50,8 +51,15 @@ export default function LoginPage() {
     <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_28rem),radial-gradient(circle_at_bottom_right,#e0f2fe,transparent_24rem),#f8fafc] p-4 text-slate-950">
       <Card className="w-full max-w-md overflow-hidden">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto grid size-14 place-items-center rounded-3xl bg-linear-to-br from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-200">
-            <ShieldCheck className="size-7" />
+          <div className="mx-auto grid size-16 place-items-center overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-lg shadow-sky-100">
+            <Image
+              src="/logo.png"
+              alt="Logo QSI"
+              width={48}
+              height={48}
+              className="size-12 object-contain"
+              priority
+            />
           </div>
           <div>
             <CardTitle className="text-2xl">Masuk QSI CMS</CardTitle>

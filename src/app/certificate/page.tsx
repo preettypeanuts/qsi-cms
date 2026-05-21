@@ -11,9 +11,9 @@ export default function CertificatePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-950">
-      <div className="flex min-h-screen overflow-hidden bg-slate-50">
-        <aside className="hidden w-64 shrink-0 border-slate-200 border-r bg-white p-4 md:flex md:flex-col">
+    <div className="h-screen overflow-hidden bg-slate-100 text-slate-950">
+      <div className="flex h-screen overflow-hidden bg-slate-50">
+        <aside className="hidden h-screen max-h-screen shrink-0 border-slate-200 border-r bg-white p-4 md:flex md:flex-col">
           <DashboardSidebar />
         </aside>
 
@@ -22,14 +22,14 @@ export default function CertificatePage() {
           onClose={() => setIsMobileMenuOpen(false)}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
           <TopNavbar
             showSearch={false}
             title="Sertifikat"
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 
-          <main className="flex-1 overflow-hidden">
+          <main className="min-h-0 flex-1 overflow-hidden">
             <CertificateManagement />
           </main>
         </div>

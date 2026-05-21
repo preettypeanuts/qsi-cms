@@ -1,9 +1,11 @@
-import { Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
+import Link from "next/link";
 
 import type { CertificateRecord } from "@/components/dashboard/dashboard-data";
 import { statusVariant } from "@/components/dashboard/dashboard-data";
 import { SearchField } from "@/components/dashboard/search-field";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -43,21 +45,28 @@ export function CertificatesTable({
         <div>
           <CardTitle>Sertifikat Terbaru</CardTitle>
           <CardDescription>
-            Data sertifikat terakhir beserta statusnya.
+            Maksimal 5 data sertifikat terakhir beserta statusnya.
           </CardDescription>
         </div>
-        <SearchField
-          className="sm:w-80"
-          placeholder="Cari di tabel..."
-          value={query}
-          onSearch={onQueryChange}
-        />
+        <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[320px_auto]">
+          <SearchField
+            placeholder="Cari di tabel..."
+            value={query}
+            onSearch={onQueryChange}
+          />
+          <Button asChild variant="outline">
+            <Link href="/certificate">
+              Lihat semua
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <CertificateTableSkeleton />
         ) : certificates.length > 0 ? (
-          <CertificateRows certificates={certificates} />
+          <CertificateRows certificates={certificates.slice(0, 5)} />
         ) : (
           <CertificateEmptyState />
         )}
