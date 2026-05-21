@@ -26,7 +26,10 @@ export async function GET(
   const certificate = await getCertificate(decodeURIComponent(certificateId));
 
   if (!certificate) {
-    return Response.json({ error: "Certificate not found." }, { status: 404 });
+    return Response.json(
+      { error: "Data sertifikat tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   return Response.json({ data: certificate });
@@ -42,7 +45,7 @@ export async function PUT(
 
   if (!result.success) {
     return Response.json(
-      { error: "Invalid certificate payload.", issues: result.error.issues },
+      { error: "Data sertifikat tidak valid.", issues: result.error.issues },
       { status: 400 },
     );
   }
@@ -51,7 +54,10 @@ export async function PUT(
   const previousCertificate = await getCertificate(decodedCertificateId);
 
   if (!previousCertificate) {
-    return Response.json({ error: "Certificate not found." }, { status: 404 });
+    return Response.json(
+      { error: "Data sertifikat tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   const certificate = await updateCertificate(
@@ -60,7 +66,10 @@ export async function PUT(
   );
 
   if (!certificate) {
-    return Response.json({ error: "Certificate not found." }, { status: 404 });
+    return Response.json(
+      { error: "Data sertifikat tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   const changes = getCertificateFieldChanges(
@@ -87,13 +96,19 @@ export async function DELETE(
   const certificate = await getCertificate(decodedCertificateId);
 
   if (!certificate) {
-    return Response.json({ error: "Certificate not found." }, { status: 404 });
+    return Response.json(
+      { error: "Data sertifikat tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   const isDeleted = await deleteCertificate(decodedCertificateId);
 
   if (!isDeleted) {
-    return Response.json({ error: "Certificate not found." }, { status: 404 });
+    return Response.json(
+      { error: "Data sertifikat tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   const actorUsername = await getCurrentUsername();

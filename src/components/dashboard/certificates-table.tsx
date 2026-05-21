@@ -41,14 +41,14 @@ export function CertificatesTable({
     <Card>
       <CardHeader className="gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle>Recent Certificates</CardTitle>
+          <CardTitle>Sertifikat Terbaru</CardTitle>
           <CardDescription>
-            Latest certificate records and current status.
+            Data sertifikat terakhir beserta statusnya.
           </CardDescription>
         </div>
         <SearchField
           className="sm:w-80"
-          placeholder="Filter table..."
+          placeholder="Cari di tabel..."
           value={query}
           onSearch={onQueryChange}
         />
@@ -75,12 +75,12 @@ function CertificateRows({
     <Table className="min-w-[820px]">
       <TableHeader>
         <TableRow>
-          <TableHead>Certificate ID</TableHead>
-          <TableHead>Company</TableHead>
-          <TableHead>Standard</TableHead>
+          <TableHead>Nomor Sertifikat</TableHead>
+          <TableHead>Nama Klien</TableHead>
+          <TableHead>Standar</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Issued</TableHead>
-          <TableHead>Expiry</TableHead>
+          <TableHead>Tanggal Terbit</TableHead>
+          <TableHead>Kadaluarsa</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -111,9 +111,10 @@ function CertificateEmptyState() {
       <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-500">
         <Search className="size-5" />
       </div>
-      <h2 className="mt-4 font-semibold">No certificates found</h2>
+      <h2 className="mt-4 font-semibold">Sertifikat tidak ditemukan</h2>
       <p className="mx-auto mt-2 max-w-sm text-slate-500 text-sm">
-        Try searching by certificate ID, company, standard, or status.
+        Coba cari berdasarkan nomor sertifikat, nama klien, standar, atau
+        status.
       </p>
     </div>
   );

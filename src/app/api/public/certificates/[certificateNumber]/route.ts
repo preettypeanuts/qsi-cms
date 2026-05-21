@@ -21,7 +21,7 @@ export async function GET(
     return publicJson(
       {
         data: null,
-        error: "Certificate not found.",
+        error: "Data sertifikat tidak ditemukan.",
       },
       404,
     );

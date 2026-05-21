@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { CertificatesTable } from "@/components/dashboard/certificates-table";
@@ -7,14 +8,15 @@ import {
   type CertificateRecord,
   getDashboardStats,
 } from "@/components/dashboard/dashboard-data";
+import { ExpiredCertificatesWidget } from "@/components/dashboard/expired-certificates-widget";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { TopNavbar } from "@/components/dashboard/top-navbar";
 
 export default function Home() {
+  const router = useRouter();
   const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
-  const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -37,22 +39,16 @@ export default function Home() {
     void loadCertificates();
   }, []);
 
-  const filteredCertificates = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return certificates;
-    }
-
-    return certificates.filter((item) =>
-      [item.id, item.company, item.standard, item.status]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [query, certificates]);
-
   const stats = useMemo(() => getDashboardStats(certificates), [certificates]);
+
+  function handleDashboardSearch(value: string) {
+    const trimmedValue = value.trim();
+    const targetPath = trimmedValue
+      ? `/certificate?q=${encodeURIComponent(trimmedValue)}`
+      : "/certificate";
+
+    router.push(targetPath);
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
@@ -68,18 +64,22 @@ export default function Home() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar
-            query={query}
+            query=""
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-            onQueryChange={setQuery}
+            onQueryChange={handleDashboardSearch}
           />
 
           <main className="flex-1 space-y-5 p-4 sm:p-6">
             <StatsGrid isLoading={isLoading} stats={stats} />
-            <CertificatesTable
-              certificates={filteredCertificates}
+            <ExpiredCertificatesWidget
+              certificates={certificates}
               isLoading={isLoading}
-              query={query}
-              onQueryChange={setQuery}
+            />
+            <CertificatesTable
+              certificates={certificates}
+              isLoading={isLoading}
+              query=""
+              onQueryChange={handleDashboardSearch}
             />
           </main>
         </div>

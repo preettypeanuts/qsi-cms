@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     return Response.json(
-      { error: "Invalid user payload.", issues: result.error.issues },
+      { error: "Data pengguna tidak valid.", issues: result.error.issues },
       { status: 400 },
     );
   }
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     return Response.json({ data: user }, { status: 201 });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to create user.";
+      error instanceof Error ? error.message : "Gagal membuat pengguna.";
 
     return Response.json({ error: message }, { status: 500 });
   }

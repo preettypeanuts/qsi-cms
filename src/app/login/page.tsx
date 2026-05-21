@@ -37,7 +37,7 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (!response.ok) {
-      setError("Username atau password salah.");
+      setError("Nama pengguna atau kata sandi salah.");
       return;
     }
 
@@ -54,9 +54,9 @@ export default function LoginPage() {
             <ShieldCheck className="size-7" />
           </div>
           <div>
-            <CardTitle className="text-2xl">Login QSI CMS</CardTitle>
+            <CardTitle className="text-2xl">Masuk QSI CMS</CardTitle>
             <CardDescription className="mt-2">
-              Masuk untuk mengelola dashboard dan data certificate.
+              Masuk untuk mengelola dasbor dan data sertifikat.
             </CardDescription>
           </div>
         </CardHeader>
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <form className="space-y-4" onSubmit={handleSubmit}>
             <label className="block space-y-2" htmlFor="username">
               <span className="font-medium text-slate-700 text-sm">
-                Username
+                Nama pengguna
               </span>
               <Input
                 id="username"
@@ -76,7 +76,7 @@ export default function LoginPage() {
             </label>
             <label className="block space-y-2" htmlFor="password">
               <span className="font-medium text-slate-700 text-sm">
-                Password
+                Kata sandi
               </span>
               <Input
                 id="password"
@@ -96,7 +96,7 @@ export default function LoginPage() {
 
             <Button className="w-full" type="submit" disabled={isLoading}>
               <LockKeyhole className="size-4" />
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading ? "Sedang masuk..." : "Masuk"}
             </Button>
           </form>
         </CardContent>

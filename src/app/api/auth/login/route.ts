@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
   if (!payload.username || !payload.password) {
     return Response.json(
-      { error: "Username and password are required." },
+      { error: "Nama pengguna dan kata sandi wajib diisi." },
       { status: 400 },
     );
   }
@@ -21,7 +21,10 @@ export async function POST(request: Request) {
   const user = await verifyUserCredentials(payload.username, payload.password);
 
   if (!user) {
-    return Response.json({ error: "Invalid credentials." }, { status: 401 });
+    return Response.json(
+      { error: "Nama pengguna atau kata sandi salah." },
+      { status: 401 },
+    );
   }
 
   const token = await createSessionToken(user.username);

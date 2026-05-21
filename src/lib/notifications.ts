@@ -190,7 +190,7 @@ export async function createCertificateCreatedNotification(
     actorUsername,
     certificateId: certificate.id,
     message: `${actorUsername} menambahkan data baru untuk ${certificate.company} (${certificate.id}).`,
-    title: "Data certificate baru",
+    title: "Data sertifikat baru",
     type: "certificate_created",
   });
 }
@@ -208,10 +208,10 @@ export async function createCertificateUpdatedNotification(
   await createNotification({
     actorUsername,
     certificateId: certificate.id,
-    message: `${actorUsername} mengubah ${changes.length} field: ${changes
+    message: `${actorUsername} mengubah ${changes.length} data: ${changes
       .map((change) => change.fieldName)
       .join(", ")}.`,
-    title: `Update ${certificate.company}`,
+    title: `Perubahan data ${certificate.company}`,
     type: "certificate_updated",
   });
 }
@@ -224,7 +224,7 @@ export async function createCertificateDeletedNotification(
     actorUsername,
     certificateId: certificate.id,
     message: `${actorUsername} menghapus data ${certificate.company} (${certificate.id}).`,
-    title: "Data certificate dihapus",
+    title: "Data sertifikat dihapus",
     type: "certificate_deleted",
   });
 }
@@ -246,8 +246,8 @@ async function syncCertificateExpiryNotifications() {
     await createNotification({
       certificateId: certificate.id,
       dedupeKey: `certificate-expiring:${certificate.id}:${expiryDate}`,
-      message: `${certificate.company} (${certificate.id}) akan expired pada ${expiryDate}.`,
-      title: "Certificate akan expired",
+      message: `${certificate.company} (${certificate.id}) akan kadaluarsa pada ${expiryDate}.`,
+      title: "Sertifikat akan kadaluarsa",
       type: "certificate_expiring",
     });
   }
@@ -265,8 +265,8 @@ async function syncCertificateExpiryNotifications() {
     await createNotification({
       certificateId: certificate.id,
       dedupeKey: `certificate-expired:${certificate.id}:${expiryDate}`,
-      message: `${certificate.company} (${certificate.id}) sudah expired sejak ${expiryDate}.`,
-      title: "Certificate expired",
+      message: `${certificate.company} (${certificate.id}) sudah kadaluarsa sejak ${expiryDate}.`,
+      title: "Sertifikat kadaluarsa",
       type: "certificate_expired",
     });
   }

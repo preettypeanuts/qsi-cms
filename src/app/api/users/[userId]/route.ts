@@ -11,7 +11,10 @@ export async function DELETE(_request: Request, { params }: UserRouteContext) {
   const isDeleted = await deleteUser(userId);
 
   if (!isDeleted) {
-    return Response.json({ error: "User not found." }, { status: 404 });
+    return Response.json(
+      { error: "Pengguna tidak ditemukan." },
+      { status: 404 },
+    );
   }
 
   return Response.json({ data: { id: userId } });

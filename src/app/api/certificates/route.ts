@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     return Response.json(
-      { error: "Invalid certificate payload.", issues: result.error.issues },
+      { error: "Data sertifikat tidak valid.", issues: result.error.issues },
       { status: 400 },
     );
   }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return Response.json({ data: certificate }, { status: 201 });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to create certificate.";
+      error instanceof Error ? error.message : "Gagal membuat data sertifikat.";
 
     return Response.json({ error: message }, { status: 500 });
   }

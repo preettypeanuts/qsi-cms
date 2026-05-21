@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Certification CMS Dashboard",
-  description: "Simple certification management dashboard",
+  title: "Dasbor CMS Sertifikasi",
+  description: "Aplikasi pengelolaan data sertifikat",
 };
 
 export default function RootLayout({
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="id"
       className={cn(
         "h-full",
         "antialiased",

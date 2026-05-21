@@ -63,8 +63,8 @@ export function NotificationBell() {
 
     if (!response.ok) {
       toast({
-        description: "Unread notification belum berhasil ditandai.",
-        title: "Gagal mark read",
+        description: "Notifikasi belum berhasil ditandai sebagai sudah dibaca.",
+        title: "Gagal menandai notifikasi",
         variant: "destructive",
       });
       return;
@@ -78,8 +78,8 @@ export function NotificationBell() {
       })),
     );
     toast({
-      description: "Semua notification sudah ditandai sebagai read.",
-      title: "Notifications marked as read",
+      description: "Semua notifikasi sudah ditandai sebagai sudah dibaca.",
+      title: "Notifikasi sudah dibaca",
       variant: "success",
     });
   }
@@ -103,15 +103,15 @@ export function NotificationBell() {
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           ) : null}
-          <span className="sr-only">Notifications</span>
+          <span className="sr-only">Notifikasi</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[min(390px,calc(100vw-2rem))]">
         <div className="flex items-center justify-between border-slate-100 border-b px-4 py-3">
           <div>
-            <h2 className="font-semibold text-sm">Notifications</h2>
+            <h2 className="font-semibold text-sm">Notifikasi</h2>
             <p className="text-slate-500 text-xs">
-              Updates, audit, dan certificate expiry.
+              Info perubahan data, audit, dan masa berlaku sertifikat.
             </p>
           </div>
           <Button
@@ -122,13 +122,13 @@ export function NotificationBell() {
             disabled={unreadCount === 0}
           >
             <CheckCheck className="size-3.5" />
-            Mark read
+            Tandai dibaca
           </Button>
         </div>
 
         <div className="max-h-96 overflow-y-auto p-2">
           {isLoading ? (
-            <NotificationMessage message="Loading notifications..." />
+            <NotificationMessage message="Memuat notifikasi..." />
           ) : notifications.length > 0 ? (
             <div className="space-y-2">
               {notifications.map((notification) => (
@@ -171,7 +171,7 @@ function NotificationItem({
             <h3 className="font-medium text-sm">{notification.title}</h3>
             {!notification.isRead ? (
               <span className="rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-600 text-[10px]">
-                New
+                Baru
               </span>
             ) : null}
           </div>
@@ -184,7 +184,7 @@ function NotificationItem({
               {formatNotificationTime(notification.createdAt)}
             </span>
             {notification.actorUsername ? (
-              <span>By {notification.actorUsername}</span>
+              <span>Oleh {notification.actorUsername}</span>
             ) : null}
           </div>
         </div>

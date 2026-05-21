@@ -9,6 +9,7 @@ import type {
   CertificateStatus,
 } from "@/components/dashboard/dashboard-data";
 import { statusVariant } from "@/components/dashboard/dashboard-data";
+import { isCertificateExpired } from "@/components/dashboard/expired-certificates-widget";
 import { SearchField } from "@/components/dashboard/search-field";
 import {
   AlertDialog,
@@ -48,14 +49,30 @@ import { toast } from "@/components/ui/toaster";
 import { formatIndonesianDate } from "@/lib/date-format";
 
 type StatusFilter = "all" | CertificateStatus;
+type ExpiryFilter = "all" | "expired";
 
 export function CertificateManagement() {
   const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>("all");
   const [certificateToDelete, setCertificateToDelete] =
     useState<CertificateRecord | null>(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const searchQuery = searchParams.get("q");
+    const expiryQuery = searchParams.get("expiry");
+
+    if (searchQuery) {
+      setQuery(searchQuery);
+    }
+
+    if (expiryQuery === "expired") {
+      setExpiryFilter("expired");
+    }
+  }, []);
 
   useEffect(() => {
     async function loadCertificates() {
@@ -82,6 +99,8 @@ export function CertificateManagement() {
     return certificates.filter((certificate) => {
       const matchesStatus =
         statusFilter === "all" || certificate.status === statusFilter;
+      const matchesExpiry =
+        expiryFilter === "all" || isCertificateExpired(certificate);
 
       const matchesSearch =
         !normalizedQuery ||
@@ -96,9 +115,9 @@ export function CertificateManagement() {
           .toLowerCase()
           .includes(normalizedQuery);
 
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesExpiry && matchesSearch;
     });
-  }, [certificates, query, statusFilter]);
+  }, [certificates, expiryFilter, query, statusFilter]);
 
   async function handleDelete() {
     if (!certificateToDelete) {
@@ -114,8 +133,8 @@ export function CertificateManagement() {
 
     if (!response.ok) {
       toast({
-        description: "Data certificate belum berhasil dihapus.",
-        title: "Gagal menghapus certificate",
+        description: "Data sertifikat belum berhasil dihapus.",
+        title: "Gagal menghapus sertifikat",
         variant: "destructive",
       });
       return;
@@ -128,8 +147,8 @@ export function CertificateManagement() {
     );
     setCertificateToDelete(null);
     toast({
-      description: `${certificateToDelete.id} sudah dihapus dari daftar certificate.`,
-      title: "Certificate berhasil dihapus",
+      description: `${certificateToDelete.id} sudah dihapus dari daftar sertifikat.`,
+      title: "Sertifikat berhasil dihapus",
       variant: "success",
     });
   }
@@ -139,22 +158,23 @@ export function CertificateManagement() {
       <Card className="flex h-full flex-col rounded-none border-0 shadow-none">
         <CardHeader className="gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle>Certificate Management</CardTitle>
+            <CardTitle>Manajemen Sertifikat</CardTitle>
             <CardDescription>
-              Kelola data sertifikat klien, surveillance, status, dan auditor.
+              Kelola data sertifikat klien, jadwal surveillance, status, dan
+              auditor.
             </CardDescription>
           </div>
           <Button asChild className="w-full sm:w-auto">
             <Link href="/certificate/new">
               <Plus className="size-4" />
-              Add Certificate
+              Tambah Sertifikat
             </Link>
           </Button>
         </CardHeader>
         <CardContent className="flex min-h-0 flex-1 flex-col space-y-4">
-          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-3 md:grid-cols-[1fr_220px_220px]">
             <SearchField
-              placeholder="Search client, certificate number, auditor..."
+              placeholder="Cari nama klien, nomor sertifikat, atau auditor..."
               value={query}
               onSearch={setQuery}
             />
@@ -163,13 +183,25 @@ export function CertificateManagement() {
               onValueChange={(value) => setStatusFilter(value as StatusFilter)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Filter status" />
+                <SelectValue placeholder="Pilih status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">Semua Status</SelectItem>
                 <SelectItem value="Aktif">Aktif</SelectItem>
                 <SelectItem value="Nonaktif">Nonaktif</SelectItem>
                 <SelectItem value="Kadaluarsa">Kadaluarsa</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={expiryFilter}
+              onValueChange={(value) => setExpiryFilter(value as ExpiryFilter)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Masa berlaku" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Masa Berlaku</SelectItem>
+                <SelectItem value="expired">Kadaluarsa</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -197,22 +229,23 @@ export function CertificateManagement() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete certificate?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus sertifikat ini?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove{" "}
+              Data{" "}
               <span className="font-medium text-slate-700">
                 {certificateToDelete?.id}
               </span>{" "}
-              from the certificate list. This action cannot be undone.
+              akan dihapus dari daftar sertifikat. Tindakan ini tidak bisa
+              dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={() => void handleDelete()}
             >
-              Delete
+              Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -242,7 +275,7 @@ function CertificateManagementTable({
             <TableHead>Surveillance 2</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Auditor</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -278,7 +311,7 @@ function CertificateManagementTable({
                   <Button asChild variant="outline" size="icon-sm">
                     <Link
                       href={`/certificate/${certificate.id}/edit`}
-                      aria-label={`Edit ${certificate.id}`}
+                      aria-label={`Ubah ${certificate.id}`}
                     >
                       <Edit3 className="size-4" />
                     </Link>
@@ -286,7 +319,7 @@ function CertificateManagementTable({
                   <Button
                     variant="destructive"
                     size="icon-sm"
-                    aria-label="Delete"
+                    aria-label="Hapus"
                     onClick={() => onDeleteClick(certificate)}
                   >
                     <Trash2 className="size-4" />
@@ -307,9 +340,9 @@ function CertificateManagementEmptyState() {
       <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-500">
         <Search className="size-5" />
       </div>
-      <h2 className="mt-4 font-semibold">No certificates found</h2>
+      <h2 className="mt-4 font-semibold">Sertifikat tidak ditemukan</h2>
       <p className="mx-auto mt-2 max-w-sm text-slate-500 text-sm">
-        Try changing the search keyword or status filter.
+        Coba ubah kata kunci pencarian atau filter status.
       </p>
     </div>
   );
@@ -320,7 +353,7 @@ function CertificateLoadingState() {
     <div className="grid flex-1 place-items-center rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center">
       <div>
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-950" />
-        <p className="mt-4 font-medium">Loading certificates...</p>
+        <p className="mt-4 font-medium">Memuat data sertifikat...</p>
       </div>
     </div>
   );

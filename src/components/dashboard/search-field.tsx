@@ -17,7 +17,7 @@ type SearchFieldProps = {
 export function SearchField({
   className,
   onSearch,
-  placeholder = "Search...",
+  placeholder = "Cari...",
   value,
 }: SearchFieldProps) {
   const [draftValue, setDraftValue] = useState(value);
@@ -48,7 +48,7 @@ export function SearchField({
         className="-translate-y-1/2 absolute top-1/2 right-1 h-8 rounded-lg px-3"
       >
         <Search className="size-3.5" />
-        Search
+        Cari
       </Button>
     </form>
   );

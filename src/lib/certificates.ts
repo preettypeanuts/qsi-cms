@@ -4,21 +4,66 @@ import {
   type CertificateRecord,
   certificates as seedCertificates,
 } from "@/components/dashboard/dashboard-data";
+import {
+  isAfterTodayDateValue,
+  isYesterdayDateValue,
+} from "@/lib/certificate-date-rules";
 import { db } from "@/lib/db";
 
 const statusSchema = z.enum(["Aktif", "Nonaktif", "Kadaluarsa"]);
+const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
-export const certificatePayloadSchema = z.object({
-  auditor: z.string().min(2),
-  company: z.string().min(2),
-  expiryDate: z.string().min(1),
-  id: z.string().min(3),
-  issuedDate: z.string().min(1),
-  standard: z.string().min(1),
-  status: statusSchema,
-  surveillance1: z.string().min(1),
-  surveillance2: z.string().min(1),
-});
+export const certificatePayloadSchema = z
+  .object({
+    auditor: z.string().trim().min(2),
+    company: z.string().trim().min(3),
+    expiryDate: z.string().regex(datePattern),
+    id: z.string().trim().min(1),
+    issuedDate: z.string().regex(datePattern),
+    standard: z.string().trim().min(1),
+    status: statusSchema,
+    surveillance1: z.string().regex(datePattern),
+    surveillance2: z.string().regex(datePattern),
+  })
+  .refine(
+    (value) => new Date(value.surveillance1) > new Date(value.issuedDate),
+    {
+      message: "Surveillance 1 harus setelah Tanggal Terbit.",
+      path: ["surveillance1"],
+    },
+  )
+  .refine(
+    (value) => new Date(value.surveillance2) > new Date(value.surveillance1),
+    {
+      message: "Surveillance 2 harus setelah Surveillance 1.",
+      path: ["surveillance2"],
+    },
+  )
+  .refine(
+    (value) => new Date(value.expiryDate) > new Date(value.surveillance2),
+    {
+      message: "Tanggal Kadaluarsa harus setelah Surveillance 2.",
+      path: ["expiryDate"],
+    },
+  )
+  .refine(
+    (value) =>
+      value.status !== "Kadaluarsa" || isYesterdayDateValue(value.expiryDate),
+    {
+      message:
+        "Jika status Kadaluarsa, Tanggal Kadaluarsa harus tanggal kemarin.",
+      path: ["expiryDate"],
+    },
+  )
+  .refine(
+    (value) =>
+      value.status !== "Aktif" || isAfterTodayDateValue(value.expiryDate),
+    {
+      message:
+        "Jika status Aktif, Tanggal Kadaluarsa harus besok atau setelahnya.",
+      path: ["expiryDate"],
+    },
+  );
 
 export type CertificatePayload = z.infer<typeof certificatePayloadSchema>;
 
@@ -79,7 +124,7 @@ export async function ensureCertificatesSchema() {
     "SELECT COUNT(*)::text AS count FROM certificates",
   );
 
-  if (rows[0]?.count === "0") {
+  if (rows[0]?.count === "0" && shouldSeedCertificates()) {
     for (const certificate of seedCertificates) {
       await insertCertificate({
         auditor: certificate.auditor,
@@ -96,6 +141,13 @@ export async function ensureCertificatesSchema() {
   }
 
   isSchemaReady = true;
+}
+
+function shouldSeedCertificates() {
+  return (
+    process.env.SEED_CERTIFICATES === "true" ||
+    process.env.NODE_ENV !== "production"
+  );
 }
 
 export async function getCertificates() {

@@ -25,7 +25,7 @@ export default function CertificatePage() {
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar
             showSearch={false}
-            title="Certificates"
+            title="Sertifikat"
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 

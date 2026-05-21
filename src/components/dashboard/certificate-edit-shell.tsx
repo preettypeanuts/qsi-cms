@@ -50,7 +50,7 @@ export function CertificateEditShell({
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar
             showSearch={false}
-            title="Edit Certificate"
+            title="Ubah Sertifikat"
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 
@@ -78,16 +78,16 @@ export function CertificateEditShell({
                   if (!response.ok) {
                     toast({
                       description:
-                        "Perubahan certificate belum berhasil disimpan.",
-                      title: "Gagal update certificate",
+                        "Perubahan sertifikat belum berhasil disimpan.",
+                      title: "Gagal menyimpan perubahan",
                       variant: "destructive",
                     });
                     return;
                   }
 
                   toast({
-                    description: "Perubahan data certificate sudah tersimpan.",
-                    title: "Certificate berhasil diupdate",
+                    description: "Perubahan data sertifikat sudah tersimpan.",
+                    title: "Sertifikat berhasil diperbarui",
                     variant: "success",
                   });
                   router.push("/certificate");
@@ -112,16 +112,16 @@ function CertificateNotFound() {
           <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-500">
             <FileQuestion className="size-5" />
           </div>
-          <CardTitle>Certificate not found</CardTitle>
+          <CardTitle>Sertifikat tidak ditemukan</CardTitle>
           <CardDescription>
-            Data certificate yang ingin diedit tidak tersedia di mock data.
+            Data sertifikat yang ingin diubah tidak tersedia.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>
             <Link href="/certificate">
               <ArrowLeft className="size-4" />
-              Back to certificates
+              Kembali ke daftar sertifikat
             </Link>
           </Button>
         </CardContent>

@@ -28,16 +28,16 @@ export default function NewCertificatePage() {
 
     if (!response.ok) {
       toast({
-        description: "Data certificate belum berhasil disimpan.",
-        title: "Gagal menambahkan certificate",
+        description: "Data sertifikat belum berhasil disimpan.",
+        title: "Gagal menambahkan sertifikat",
         variant: "destructive",
       });
       return;
     }
 
     toast({
-      description: "Data baru sudah masuk ke certificate management.",
-      title: "Certificate berhasil ditambahkan",
+      description: "Data baru sudah masuk ke manajemen sertifikat.",
+      title: "Sertifikat berhasil ditambahkan",
       variant: "success",
     });
     router.push("/certificate");
@@ -59,7 +59,7 @@ export default function NewCertificatePage() {
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar
             showSearch={false}
-            title="New Certificate"
+            title="Tambah Sertifikat"
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
 

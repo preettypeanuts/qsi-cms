@@ -80,7 +80,13 @@ async function signValue(value: string) {
 }
 
 function getAuthSecret() {
-  return process.env.AUTH_SECRET ?? "development-auth-secret";
+  const authSecret = process.env.AUTH_SECRET;
+
+  if (!authSecret) {
+    throw new Error("AUTH_SECRET wajib diatur.");
+  }
+
+  return authSecret;
 }
 
 function base64UrlEncode(value: string) {

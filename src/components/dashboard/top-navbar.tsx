@@ -18,10 +18,10 @@ export function TopNavbar({
   onOpenMobileMenu,
   onQueryChange,
   query = "",
-  searchPlaceholder = "Search certificates...",
+  searchPlaceholder = "Cari sertifikat...",
   showSearch = true,
-  subtitle = "Certification CMS",
-  title = "Dashboard",
+  subtitle = "",
+  title = "Dasbor",
 }: TopNavbarProps) {
   return (
     <header className="flex flex-col gap-4 border-slate-200 border-b bg-white/80 px-4 py-4 backdrop-blur sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -33,7 +33,7 @@ export function TopNavbar({
           onClick={onOpenMobileMenu}
         >
           <Menu className="size-5" />
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">Buka menu</span>
         </Button>
         <div>
           <p className="text-slate-500 text-sm">{subtitle}</p>

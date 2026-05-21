@@ -3,12 +3,24 @@
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { sidebarItems } from "@/components/dashboard/dashboard-data";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   return (
     <div className="flex h-full flex-col">
@@ -18,7 +30,7 @@ export function DashboardSidebar() {
         </div>
         <div>
           <p className="font-semibold">QSI CMS</p>
-          <p className="text-slate-500 text-xs">Certification manager</p>
+          <p className="text-slate-500 text-xs">Pengelola sertifikat</p>
         </div>
       </div>
 
@@ -34,6 +46,20 @@ export function DashboardSidebar() {
               ? "bg-sky-50 text-sky-700"
               : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
           );
+
+          if (item.href === "/api/auth/logout") {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={className}
+                onClick={() => setIsLogoutDialogOpen(true)}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </button>
+            );
+          }
 
           if (item.isExternal) {
             return (
@@ -53,10 +79,37 @@ export function DashboardSidebar() {
         })}
       </nav>
 
+      <AlertDialog
+        open={isLogoutDialogOpen}
+        onOpenChange={setIsLogoutDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Keluar dari CMS?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Session kamu akan diakhiri dan kamu perlu login lagi untuk masuk
+              ke CMS.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={() => {
+                window.location.href = "/api/auth/logout";
+              }}
+            >
+              Keluar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="mt-auto rounded-2xl bg-slate-50 p-4">
-        <p className="font-medium text-sm">Need review</p>
+        <p className="font-medium text-sm">Perlu ditinjau</p>
         <p className="mt-1 text-slate-500 text-xs">
-          3 certificates are waiting for approval.
+          Pantau notifikasi untuk melihat perubahan data dan masa berlaku
+          sertifikat.
         </p>
       </div>
     </div>

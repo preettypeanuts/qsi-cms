@@ -22,8 +22,8 @@ type UserRow = {
 };
 
 export const createUserSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters."),
-  username: z.string().min(3, "Username must be at least 3 characters."),
+  password: z.string().min(6, "Kata sandi minimal 6 karakter."),
+  username: z.string().min(3, "Nama pengguna minimal 3 karakter."),
 });
 
 let isUsersSchemaReady = false;
@@ -48,9 +48,11 @@ export async function ensureUsersSchema() {
   );
 
   if (rows[0]?.count === "0") {
+    const bootstrapUser = getBootstrapUser();
+
     await createUser({
-      password: process.env.AUTH_PASSWORD ?? "admin123",
-      username: process.env.AUTH_USERNAME ?? "admin",
+      password: bootstrapUser.password,
+      username: bootstrapUser.username,
     });
   }
 
@@ -114,6 +116,22 @@ export async function verifyUserCredentials(
   }
 
   return mapUserRow(user);
+}
+
+function getBootstrapUser() {
+  const username = process.env.AUTH_USERNAME;
+  const password = process.env.AUTH_PASSWORD;
+
+  if (!username || !password) {
+    throw new Error(
+      "AUTH_USERNAME dan AUTH_PASSWORD wajib diatur saat tabel users masih kosong.",
+    );
+  }
+
+  return {
+    password,
+    username,
+  };
 }
 
 function hashPassword(password: string) {
