@@ -1,7 +1,8 @@
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 
+import { NotificationBell } from "@/components/dashboard/notification-bell";
+import { SearchField } from "@/components/dashboard/search-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 type TopNavbarProps = {
   onOpenMobileMenu: () => void;
@@ -42,20 +43,14 @@ export function TopNavbar({
 
       <div className="flex items-center gap-3">
         {showSearch ? (
-          <div className="relative w-full sm:w-80">
-            <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-slate-400" />
-            <Input
-              className="pl-9"
-              placeholder={searchPlaceholder}
-              value={query}
-              onChange={(event) => onQueryChange?.(event.target.value)}
-            />
-          </div>
+          <SearchField
+            className="sm:w-96"
+            placeholder={searchPlaceholder}
+            value={query}
+            onSearch={(value) => onQueryChange?.(value)}
+          />
         ) : null}
-        <Button variant="outline" size="icon" className="shrink-0">
-          <Bell className="size-4" />
-          <span className="sr-only">Notifications</span>
-        </Button>
+        <NotificationBell />
       </div>
     </header>
   );

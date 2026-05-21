@@ -4,7 +4,11 @@ import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
 const protectedPrefixes = ["/", "/certificate", "/certificates"];
-const protectedApiPrefixes = ["/api/certificates", "/api/users"];
+const protectedApiPrefixes = [
+  "/api/certificates",
+  "/api/notifications",
+  "/api/users",
+];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -43,6 +47,7 @@ export const config = {
     "/certificate/:path*",
     "/certificates/:path*",
     "/api/certificates/:path*",
+    "/api/notifications/:path*",
     "/api/users/:path*",
   ],
 };

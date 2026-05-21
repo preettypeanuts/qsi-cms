@@ -11,6 +11,7 @@ import {
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { TopNavbar } from "@/components/dashboard/top-navbar";
+import { toast } from "@/components/ui/toaster";
 
 export default function NewCertificatePage() {
   const router = useRouter();
@@ -26,9 +27,19 @@ export default function NewCertificatePage() {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create certificate.");
+      toast({
+        description: "Data certificate belum berhasil disimpan.",
+        title: "Gagal menambahkan certificate",
+        variant: "destructive",
+      });
+      return;
     }
 
+    toast({
+      description: "Data baru sudah masuk ke certificate management.",
+      title: "Certificate berhasil ditambahkan",
+      variant: "success",
+    });
     router.push("/certificate");
     router.refresh();
   }

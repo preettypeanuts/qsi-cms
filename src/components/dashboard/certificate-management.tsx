@@ -9,6 +9,7 @@ import type {
   CertificateStatus,
 } from "@/components/dashboard/dashboard-data";
 import { statusVariant } from "@/components/dashboard/dashboard-data";
+import { SearchField } from "@/components/dashboard/search-field";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -44,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "@/components/ui/toaster";
 import { formatIndonesianDate } from "@/lib/date-format";
 
 type StatusFilter = "all" | CertificateStatus;
@@ -112,6 +113,11 @@ export function CertificateManagement() {
     );
 
     if (!response.ok) {
+      toast({
+        description: "Data certificate belum berhasil dihapus.",
+        title: "Gagal menghapus certificate",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -121,6 +127,11 @@ export function CertificateManagement() {
       ),
     );
     setCertificateToDelete(null);
+    toast({
+      description: `${certificateToDelete.id} sudah dihapus dari daftar certificate.`,
+      title: "Certificate berhasil dihapus",
+      variant: "success",
+    });
   }
 
   return (
@@ -142,15 +153,11 @@ export function CertificateManagement() {
         </CardHeader>
         <CardContent className="flex min-h-0 flex-1 flex-col space-y-4">
           <div className="grid gap-3 md:grid-cols-[1fr_220px]">
-            <div className="relative">
-              <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-slate-400" />
-              <Input
-                className="pl-9"
-                placeholder="Search client, certificate number, auditor..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </div>
+            <SearchField
+              placeholder="Search client, certificate number, auditor..."
+              value={query}
+              onSearch={setQuery}
+            />
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as StatusFilter)}
@@ -223,7 +230,7 @@ function CertificateManagementTable({
 }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-scroll rounded-2xl border border-slate-100 max-h-[calc(100vh-220px)]">
-      <Table>
+      <Table className="min-w-[1280px]">
         <TableHeader className="sticky top-0 z-10 bg-white">
           <TableRow>
             <TableHead>Nama Klien</TableHead>

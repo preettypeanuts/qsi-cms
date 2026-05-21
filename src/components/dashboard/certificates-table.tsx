@@ -2,6 +2,7 @@ import { Search } from "lucide-react";
 
 import type { CertificateRecord } from "@/components/dashboard/dashboard-data";
 import { statusVariant } from "@/components/dashboard/dashboard-data";
+import { SearchField } from "@/components/dashboard/search-field";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -10,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -46,15 +46,12 @@ export function CertificatesTable({
             Latest certificate records and current status.
           </CardDescription>
         </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-slate-400" />
-          <Input
-            className="pl-9"
-            placeholder="Filter table..."
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-          />
-        </div>
+        <SearchField
+          className="sm:w-80"
+          placeholder="Filter table..."
+          value={query}
+          onSearch={onQueryChange}
+        />
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -75,7 +72,7 @@ function CertificateRows({
   certificates: CertificateRecord[];
 }) {
   return (
-    <Table>
+    <Table className="min-w-[820px]">
       <TableHeader>
         <TableRow>
           <TableHead>Certificate ID</TableHead>

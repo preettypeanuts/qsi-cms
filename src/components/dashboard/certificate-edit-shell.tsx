@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "@/components/ui/toaster";
 
 type CertificateEditShellProps = {
   certificate?: CertificateRecord;
@@ -75,9 +76,20 @@ export function CertificateEditShell({
                   );
 
                   if (!response.ok) {
-                    throw new Error("Failed to update certificate.");
+                    toast({
+                      description:
+                        "Perubahan certificate belum berhasil disimpan.",
+                      title: "Gagal update certificate",
+                      variant: "destructive",
+                    });
+                    return;
                   }
 
+                  toast({
+                    description: "Perubahan data certificate sudah tersimpan.",
+                    title: "Certificate berhasil diupdate",
+                    variant: "success",
+                  });
                   router.push("/certificate");
                   router.refresh();
                 }}

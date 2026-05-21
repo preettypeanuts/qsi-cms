@@ -3,6 +3,8 @@ import {
   createCertificate,
   getCertificates,
 } from "@/lib/certificates";
+import { getCurrentUsername } from "@/lib/current-user";
+import { createCertificateCreatedNotification } from "@/lib/notifications";
 
 export async function GET() {
   const certificates = await getCertificates();
@@ -23,6 +25,9 @@ export async function POST(request: Request) {
 
   try {
     const certificate = await createCertificate(result.data);
+    const actorUsername = await getCurrentUsername();
+
+    await createCertificateCreatedNotification(certificate, actorUsername);
 
     return Response.json({ data: certificate }, { status: 201 });
   } catch (error) {

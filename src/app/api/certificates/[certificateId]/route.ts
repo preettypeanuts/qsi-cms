@@ -4,6 +4,13 @@ import {
   getCertificate,
   updateCertificate,
 } from "@/lib/certificates";
+import { getCurrentUsername } from "@/lib/current-user";
+import {
+  createCertificateDeletedNotification,
+  createCertificateUpdatedNotification,
+  getCertificateFieldChanges,
+  mapCertificatePayloadToRecord,
+} from "@/lib/notifications";
 
 type CertificateRouteContext = {
   params: Promise<{
@@ -40,14 +47,33 @@ export async function PUT(
     );
   }
 
+  const decodedCertificateId = decodeURIComponent(certificateId);
+  const previousCertificate = await getCertificate(decodedCertificateId);
+
+  if (!previousCertificate) {
+    return Response.json({ error: "Certificate not found." }, { status: 404 });
+  }
+
   const certificate = await updateCertificate(
-    decodeURIComponent(certificateId),
+    decodedCertificateId,
     result.data,
   );
 
   if (!certificate) {
     return Response.json({ error: "Certificate not found." }, { status: 404 });
   }
+
+  const changes = getCertificateFieldChanges(
+    previousCertificate,
+    mapCertificatePayloadToRecord(result.data),
+  );
+  const actorUsername = await getCurrentUsername();
+
+  await createCertificateUpdatedNotification(
+    certificate,
+    actorUsername,
+    changes,
+  );
 
   return Response.json({ data: certificate });
 }
@@ -57,11 +83,22 @@ export async function DELETE(
   { params }: CertificateRouteContext,
 ) {
   const { certificateId } = await params;
-  const isDeleted = await deleteCertificate(decodeURIComponent(certificateId));
+  const decodedCertificateId = decodeURIComponent(certificateId);
+  const certificate = await getCertificate(decodedCertificateId);
+
+  if (!certificate) {
+    return Response.json({ error: "Certificate not found." }, { status: 404 });
+  }
+
+  const isDeleted = await deleteCertificate(decodedCertificateId);
 
   if (!isDeleted) {
     return Response.json({ error: "Certificate not found." }, { status: 404 });
   }
+
+  const actorUsername = await getCurrentUsername();
+
+  await createCertificateDeletedNotification(certificate, actorUsername);
 
   return Response.json({ data: { id: certificateId } });
 }
