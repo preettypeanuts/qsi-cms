@@ -30,10 +30,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { CertificatePayload } from "@/lib/certificates";
 import { cn } from "@/lib/utils";
 
-const statusOptions = ["Active", "Inactive", "Expired"] as const;
-const certificateTypes = ["ISO 9001", "ISO 22000", "HACCP", "GMP"] as const;
+const statusOptions = ["Aktif", "Nonaktif", "Kadaluarsa"] as const;
+const certificateTypes = [
+  "ISO 9001",
+  "ISO 22000",
+  "ISO 22000:2018",
+  "HACCP",
+  "GMP",
+] as const;
 
 const certificateFormSchema = z
   .object({
@@ -95,7 +102,23 @@ const certificateFormSchema = z
     },
   );
 
-type CertificateFormValues = z.infer<typeof certificateFormSchema>;
+export type CertificateFormValues = z.infer<typeof certificateFormSchema>;
+
+export function mapFormValuesToCertificatePayload(
+  values: CertificateFormValues,
+): CertificatePayload {
+  return {
+    auditor: values.auditorName,
+    company: values.companyName,
+    expiryDate: values.expiryDate,
+    id: values.certificateNumber,
+    issuedDate: values.issueDate,
+    standard: values.certificateType,
+    status: values.status,
+    surveillance1: values.surveillance1,
+    surveillance2: values.surveillance2,
+  };
+}
 
 const defaultValues: CertificateFormValues = {
   companyName: "",
@@ -105,7 +128,7 @@ const defaultValues: CertificateFormValues = {
   expiryDate: "",
   surveillance1: "",
   surveillance2: "",
-  status: "Active",
+  status: "Aktif",
   auditorName: "",
 };
 
@@ -204,7 +227,7 @@ export function CertificateForm({
             >
               <Input
                 id="certificateNumber"
-                placeholder="QSI-9001-001"
+                placeholder="202508001001HCK007"
                 {...form.register("certificateNumber")}
               />
             </FormField>
@@ -317,7 +340,7 @@ export function CertificateForm({
             >
               <Input
                 id="auditorName"
-                placeholder="Sarah Wijaya"
+                placeholder="Yudi Defitra"
                 {...form.register("auditorName")}
               />
             </FormField>

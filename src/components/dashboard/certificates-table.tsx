@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatIndonesianDate } from "@/lib/date-format";
 
 const skeletonRows = ["row-1", "row-2", "row-3", "row-4", "row-5"];
 
@@ -94,8 +95,12 @@ function CertificateRows({
             <TableCell>
               <Badge variant={statusVariant[item.status]}>{item.status}</Badge>
             </TableCell>
-            <TableCell className="text-slate-500">{item.issuedDate}</TableCell>
-            <TableCell className="text-slate-500">{item.expiryDate}</TableCell>
+            <TableCell className="text-slate-500">
+              {formatIndonesianDate(item.issuedDate)}
+            </TableCell>
+            <TableCell className="text-slate-500">
+              {formatIndonesianDate(item.expiryDate)}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

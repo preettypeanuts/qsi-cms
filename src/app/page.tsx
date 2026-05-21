@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CertificatesTable } from "@/components/dashboard/certificates-table";
 import {
-  certificates,
+  type CertificateRecord,
   getDashboardStats,
 } from "@/components/dashboard/dashboard-data";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
@@ -13,14 +13,28 @@ import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { TopNavbar } from "@/components/dashboard/top-navbar";
 
 export default function Home() {
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIsLoading(false), 650);
+    async function loadCertificates() {
+      setIsLoading(true);
 
-    return () => window.clearTimeout(timer);
+      const response = await fetch("/api/certificates");
+
+      if (!response.ok) {
+        setIsLoading(false);
+        return;
+      }
+
+      const result = (await response.json()) as { data: CertificateRecord[] };
+      setCertificates(result.data);
+      setIsLoading(false);
+    }
+
+    void loadCertificates();
   }, []);
 
   const filteredCertificates = useMemo(() => {
@@ -36,9 +50,9 @@ export default function Home() {
         .toLowerCase()
         .includes(normalizedQuery),
     );
-  }, [query]);
+  }, [query, certificates]);
 
-  const stats = useMemo(() => getDashboardStats(), []);
+  const stats = useMemo(() => getDashboardStats(certificates), [certificates]);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">

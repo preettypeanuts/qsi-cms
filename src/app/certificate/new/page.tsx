@@ -1,14 +1,37 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { CertificateForm } from "@/components/dashboard/certificate-form";
+import {
+  CertificateForm,
+  type CertificateFormValues,
+  mapFormValuesToCertificatePayload,
+} from "@/components/dashboard/certificate-form";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { TopNavbar } from "@/components/dashboard/top-navbar";
 
 export default function NewCertificatePage() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  async function handleSave(values: CertificateFormValues) {
+    const response = await fetch("/api/certificates", {
+      body: JSON.stringify(mapFormValuesToCertificatePayload(values)),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create certificate.");
+    }
+
+    router.push("/certificate");
+    router.refresh();
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
@@ -30,7 +53,11 @@ export default function NewCertificatePage() {
           />
 
           <main className="flex-1 overflow-hidden">
-            <CertificateForm className="min-h-full rounded-none border-0 shadow-none" />
+            <CertificateForm
+              className="min-h-full rounded-none border-0 shadow-none"
+              onCancel={() => router.push("/certificate")}
+              onSave={handleSave}
+            />
           </main>
         </div>
       </div>

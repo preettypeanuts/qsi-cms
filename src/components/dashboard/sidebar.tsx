@@ -28,18 +28,24 @@ export function DashboardSidebar() {
             item.href === "/"
               ? pathname === item.href
               : item.href !== "#" && pathname.startsWith(item.href);
+          const className = cn(
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-medium text-sm transition-colors",
+            isActive
+              ? "bg-sky-50 text-sky-700"
+              : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
+          );
+
+          if (item.isExternal) {
+            return (
+              <a key={item.label} href={item.href} className={className}>
+                <item.icon className="size-4" />
+                {item.label}
+              </a>
+            );
+          }
 
           return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-medium text-sm transition-colors",
-                isActive
-                  ? "bg-sky-50 text-sky-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
-              )}
-            >
+            <Link key={item.label} href={item.href} className={className}>
               <item.icon className="size-4" />
               {item.label}
             </Link>

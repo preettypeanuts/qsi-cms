@@ -2,16 +2,13 @@
 
 import { Edit3, Plus, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type {
   CertificateRecord,
   CertificateStatus,
 } from "@/components/dashboard/dashboard-data";
-import {
-  certificates as mockCertificates,
-  statusVariant,
-} from "@/components/dashboard/dashboard-data";
+import { statusVariant } from "@/components/dashboard/dashboard-data";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,16 +44,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatIndonesianDate } from "@/lib/date-format";
 
 type StatusFilter = "all" | CertificateStatus;
 
 export function CertificateManagement() {
-  const [certificates, setCertificates] =
-    useState<CertificateRecord[]>(mockCertificates);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [certificateToDelete, setCertificateToDelete] =
     useState<CertificateRecord | null>(null);
+
+  useEffect(() => {
+    async function loadCertificates() {
+      setIsLoading(true);
+
+      const response = await fetch("/api/certificates");
+
+      if (!response.ok) {
+        setIsLoading(false);
+        return;
+      }
+
+      const result = (await response.json()) as { data: CertificateRecord[] };
+      setCertificates(result.data);
+      setIsLoading(false);
+    }
+
+    void loadCertificates();
+  }, []);
 
   const filteredCertificates = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -82,8 +99,19 @@ export function CertificateManagement() {
     });
   }, [certificates, query, statusFilter]);
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!certificateToDelete) {
+      return;
+    }
+
+    const response = await fetch(
+      `/api/certificates/${encodeURIComponent(certificateToDelete.id)}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    if (!response.ok) {
       return;
     }
 
@@ -132,14 +160,16 @@ export function CertificateManagement() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-                <SelectItem value="Expired">Expired</SelectItem>
+                <SelectItem value="Aktif">Aktif</SelectItem>
+                <SelectItem value="Nonaktif">Nonaktif</SelectItem>
+                <SelectItem value="Kadaluarsa">Kadaluarsa</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {filteredCertificates.length > 0 ? (
+          {isLoading ? (
+            <CertificateLoadingState />
+          ) : filteredCertificates.length > 0 ? (
             <CertificateManagementTable
               certificates={filteredCertificates}
               onDeleteClick={setCertificateToDelete}
@@ -173,7 +203,7 @@ export function CertificateManagement() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-white hover:bg-red-700"
-              onClick={handleDelete}
+              onClick={() => void handleDelete()}
             >
               Delete
             </AlertDialogAction>
@@ -219,16 +249,16 @@ function CertificateManagementTable({
                 {certificate.id}
               </TableCell>
               <TableCell className="text-slate-500">
-                {certificate.issuedDate}
+                {formatIndonesianDate(certificate.issuedDate)}
               </TableCell>
               <TableCell className="text-slate-500">
-                {certificate.expiryDate}
+                {formatIndonesianDate(certificate.expiryDate)}
               </TableCell>
               <TableCell className="text-slate-500">
-                {certificate.surveillance1}
+                {formatIndonesianDate(certificate.surveillance1)}
               </TableCell>
               <TableCell className="text-slate-500">
-                {certificate.surveillance2}
+                {formatIndonesianDate(certificate.surveillance2)}
               </TableCell>
               <TableCell>
                 <Badge variant={statusVariant[certificate.status]}>
@@ -238,8 +268,13 @@ function CertificateManagementTable({
               <TableCell>{certificate.auditor}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="icon-sm" aria-label="Edit">
-                    <Edit3 className="size-4" />
+                  <Button asChild variant="outline" size="icon-sm">
+                    <Link
+                      href={`/certificate/${certificate.id}/edit`}
+                      aria-label={`Edit ${certificate.id}`}
+                    >
+                      <Edit3 className="size-4" />
+                    </Link>
                   </Button>
                   <Button
                     variant="destructive"
@@ -269,6 +304,17 @@ function CertificateManagementEmptyState() {
       <p className="mx-auto mt-2 max-w-sm text-slate-500 text-sm">
         Try changing the search keyword or status filter.
       </p>
+    </div>
+  );
+}
+
+function CertificateLoadingState() {
+  return (
+    <div className="grid flex-1 place-items-center rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center">
+      <div>
+        <div className="mx-auto size-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-950" />
+        <p className="mt-4 font-medium">Loading certificates...</p>
+      </div>
     </div>
   );
 }
