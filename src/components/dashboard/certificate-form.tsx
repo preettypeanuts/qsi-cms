@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon, InfoIcon, Loader2, RotateCcw, Save } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -47,14 +47,23 @@ const certificateTypes = [
   "HACCP",
   "GMP",
 ] as const;
-const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+const customCertificateTypeValue = "__custom_certificate_type__";
+const inputDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+const manualDatePattern = /^\d{2}\/\d{2}\/\d{4}$/;
+const dateValueSchema = (fieldName: string) =>
+  z
+    .string()
+    .min(1, `${fieldName} wajib diisi.`)
+    .refine(isValidDateValue, `${fieldName} harus format DD/MM/YYYY.`);
 const certificateRules = [
   "Nama klien minimal 3 karakter. Misalnya: PT Pawon Sae Nusantara.",
   "Nomor sertifikat wajib diisi sesuai dokumen yang diterbitkan.",
+  "Jika jenis sertifikasi belum ada di daftar, pilih Tambah jenis baru lalu isi namanya.",
+  "Semua tanggal bisa diketik manual dengan format DD/MM/YYYY atau dipilih dari date picker.",
   "Urutan tanggal harus jelas: Tanggal Terbit, Surveillance 1, Surveillance 2, lalu Tanggal Kadaluarsa.",
   "Jika status Kadaluarsa, Tanggal Kadaluarsa otomatis memakai tanggal kemarin.",
   "Jika status Aktif, Tanggal Kadaluarsa harus besok atau setelahnya.",
-  "Status pilih sesuai kondisi sertifikat: Aktif, Nonaktif, atau Kadaluarsa. Nama auditor minimal 2 karakter.",
+  "Status pilih sesuai kondisi sertifikat: Aktif, Nonaktif, atau Kadaluarsa. Nama auditor boleh dikosongkan.",
 ];
 
 const certificateFormSchema = z
@@ -65,20 +74,14 @@ const certificateFormSchema = z
       .string()
       .trim()
       .min(1, "Nomor sertifikat wajib diisi."),
-    issueDate: z.string().regex(datePattern, "Tanggal Terbit wajib dipilih."),
-    expiryDate: z
-      .string()
-      .regex(datePattern, "Tanggal Kadaluarsa wajib dipilih."),
-    surveillance1: z
-      .string()
-      .regex(datePattern, "Surveillance 1 wajib dipilih."),
-    surveillance2: z
-      .string()
-      .regex(datePattern, "Surveillance 2 wajib dipilih."),
+    issueDate: dateValueSchema("Tanggal Terbit"),
+    expiryDate: dateValueSchema("Tanggal Kadaluarsa"),
+    surveillance1: dateValueSchema("Surveillance 1"),
+    surveillance2: dateValueSchema("Surveillance 2"),
     status: z.enum(statusOptions, {
       error: "Status wajib dipilih.",
     }),
-    auditorName: z.string().trim().min(2, "Auditor minimal 2 karakter."),
+    auditorName: z.string().trim(),
   })
   .refine(
     (value) => {
@@ -86,7 +89,7 @@ const certificateFormSchema = z
         return true;
       }
 
-      return new Date(value.surveillance1) > new Date(value.issueDate);
+      return isDateAfter(value.surveillance1, value.issueDate);
     },
     {
       message: "Surveillance 1 harus setelah Tanggal Terbit.",
@@ -99,7 +102,7 @@ const certificateFormSchema = z
         return true;
       }
 
-      return new Date(value.surveillance2) > new Date(value.surveillance1);
+      return isDateAfter(value.surveillance2, value.surveillance1);
     },
     {
       message: "Surveillance 2 harus setelah Surveillance 1.",
@@ -112,7 +115,7 @@ const certificateFormSchema = z
         return true;
       }
 
-      return new Date(value.expiryDate) > new Date(value.surveillance2);
+      return isDateAfter(value.expiryDate, value.surveillance2);
     },
     {
       message: "Tanggal Kadaluarsa harus setelah Surveillance 2.",
@@ -144,15 +147,15 @@ export function mapFormValuesToCertificatePayload(
   values: CertificateFormValues,
 ): CertificatePayload {
   return {
-    auditor: values.auditorName,
+    auditor: values.auditorName.trim(),
     company: values.companyName,
-    expiryDate: values.expiryDate,
+    expiryDate: toApiDateValue(values.expiryDate),
     id: values.certificateNumber,
-    issuedDate: values.issueDate,
+    issuedDate: toApiDateValue(values.issueDate),
     standard: values.certificateType,
     status: values.status,
-    surveillance1: values.surveillance1,
-    surveillance2: values.surveillance2,
+    surveillance1: toApiDateValue(values.surveillance1),
+    surveillance2: toApiDateValue(values.surveillance2),
   };
 }
 
@@ -191,6 +194,8 @@ export function CertificateForm({
     },
   });
   const statusValue = form.watch("status");
+  const certificateTypeValue = form.watch("certificateType");
+  const [isCustomCertificateType, setIsCustomCertificateType] = useState(false);
 
   useEffect(() => {
     const expiryDate = form.getValues("expiryDate");
@@ -213,6 +218,12 @@ export function CertificateForm({
       });
     }
   }, [form, statusValue]);
+
+  useEffect(() => {
+    if (certificateTypeValue && !isKnownCertificateType(certificateTypeValue)) {
+      setIsCustomCertificateType(true);
+    }
+  }, [certificateTypeValue]);
 
   async function handleSubmit(values: CertificateFormValues) {
     await new Promise((resolve) => window.setTimeout(resolve, 700));
@@ -286,7 +297,7 @@ export function CertificateForm({
             </FormField>
 
             <FormField
-              description="Pilih jenis sertifikasi yang dimiliki klien."
+              description="Pilih dari daftar, atau tambah jenis baru jika belum tersedia."
               error={form.formState.errors.certificateType?.message}
               id="certificateType"
               label="Jenis Sertifikasi"
@@ -294,20 +305,51 @@ export function CertificateForm({
               <Controller
                 control={form.control}
                 name="certificateType"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id="certificateType">
-                      <SelectValue placeholder="Pilih jenis sertifikasi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {certificateTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                render={({ field }) => {
+                  const selectedValue = isCustomCertificateType
+                    ? customCertificateTypeValue
+                    : getSelectedCertificateTypeValue(field.value);
+
+                  return (
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedValue}
+                        onValueChange={(value) => {
+                          const isCustomValue =
+                            value === customCertificateTypeValue;
+
+                          setIsCustomCertificateType(isCustomValue);
+                          field.onChange(isCustomValue ? "" : value);
+                        }}
+                      >
+                        <SelectTrigger id="certificateType">
+                          <SelectValue placeholder="Pilih jenis sertifikasi" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {certificateTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value={customCertificateTypeValue}>
+                            Tambah jenis baru
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      {isCustomCertificateType ? (
+                        <Input
+                          id="certificateTypeCustom"
+                          placeholder="Tulis jenis sertifikasi baru"
+                          value={field.value}
+                          onChange={(event) =>
+                            field.onChange(event.target.value)
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  );
+                }}
               />
             </FormField>
 
@@ -325,7 +367,7 @@ export function CertificateForm({
             </FormField>
 
             <FormField
-              description="Misalnya: 2025-08-28."
+              description="Bisa diketik manual format DD/MM/YYYY. Misalnya: 28/08/2025."
               error={form.formState.errors.issueDate?.message}
               id="issueDate"
               label="Tanggal Terbit"
@@ -336,7 +378,7 @@ export function CertificateForm({
                 render={({ field }) => (
                   <DatePickerField
                     id="issueDate"
-                    placeholder="Pilih tanggal terbit"
+                    placeholder="DD/MM/YYYY"
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -356,7 +398,7 @@ export function CertificateForm({
                 render={({ field }) => (
                   <DatePickerField
                     id="expiryDate"
-                    placeholder="Pilih tanggal kadaluarsa"
+                    placeholder="DD/MM/YYYY"
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -365,7 +407,7 @@ export function CertificateForm({
             </FormField>
 
             <FormField
-              description="Harus setelah Tanggal Terbit. Misalnya: 2026-08-28."
+              description="Harus setelah Tanggal Terbit. Bisa diketik manual format DD/MM/YYYY."
               error={form.formState.errors.surveillance1?.message}
               id="surveillance1"
               label="Surveillance 1"
@@ -376,7 +418,7 @@ export function CertificateForm({
                 render={({ field }) => (
                   <DatePickerField
                     id="surveillance1"
-                    placeholder="Pilih tanggal surveillance 1"
+                    placeholder="DD/MM/YYYY"
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -385,7 +427,7 @@ export function CertificateForm({
             </FormField>
 
             <FormField
-              description="Harus setelah Surveillance 1. Misalnya: 2027-08-28."
+              description="Harus setelah Surveillance 1. Bisa diketik manual format DD/MM/YYYY."
               error={form.formState.errors.surveillance2?.message}
               id="surveillance2"
               label="Surveillance 2"
@@ -396,7 +438,7 @@ export function CertificateForm({
                 render={({ field }) => (
                   <DatePickerField
                     id="surveillance2"
-                    placeholder="Pilih tanggal surveillance 2"
+                    placeholder="DD/MM/YYYY"
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -431,7 +473,7 @@ export function CertificateForm({
             </FormField>
 
             <FormField
-              description="Nama auditor penanggung jawab. Contoh: Yudi Defitra."
+              description="Opsional. Boleh dikosongkan jika auditor belum ditentukan."
               error={form.formState.errors.auditorName?.message}
               id="auditorName"
               label="Auditor"
@@ -481,48 +523,135 @@ function DatePickerField({
   placeholder: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const selectedDate = value ? parseISO(value) : undefined;
+  const selectedDate = parseDateValue(value) ?? undefined;
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          className={cn(
-            "h-10 w-full justify-start rounded-xl border-slate-200 bg-white px-3 text-left font-normal",
-            !selectedDate && "text-slate-400",
-          )}
-        >
-          <CalendarIcon className="size-4" />
-          {selectedDate ? format(selectedDate, "dd MMM yyyy") : placeholder}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => {
-            onChange(date ? format(date, "yyyy-MM-dd") : "");
-            setIsOpen(false);
-          }}
-        />
-      </PopoverContent>
-    </Popover>
+    <div className="relative">
+      <Input
+        id={id}
+        className="pr-11"
+        inputMode="numeric"
+        placeholder={placeholder}
+        value={formatDateForDisplay(value)}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="-translate-y-1/2 absolute top-1/2 right-1"
+            aria-label="Pilih tanggal"
+          >
+            <CalendarIcon className="size-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-auto">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => {
+              onChange(date ? format(date, "dd/MM/yyyy") : "");
+              setIsOpen(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
 function getExpiryDateDescription(status: CertificateFormValues["status"]) {
   if (status === "Kadaluarsa") {
-    return `Untuk status Kadaluarsa, tanggal ini otomatis menjadi tanggal kemarin (${getYesterdayDateValue()}).`;
+    return `Untuk status Kadaluarsa, tanggal ini otomatis menjadi tanggal kemarin (${formatDateForDisplay(getYesterdayDateValue())}).`;
   }
 
   if (status === "Aktif") {
-    return `Untuk status Aktif, pilih tanggal besok atau setelahnya. Paling cepat ${getTomorrowDateValue()}.`;
+    return `Untuk status Aktif, pilih tanggal besok atau setelahnya. Paling cepat ${formatDateForDisplay(getTomorrowDateValue())}.`;
   }
 
   return "Untuk status Nonaktif, pastikan tanggal tetap sesuai dokumen sertifikat.";
+}
+
+function isValidDateValue(value: string) {
+  return Boolean(parseDateValue(value));
+}
+
+function isDateAfter(left: string, right: string) {
+  const leftDate = parseDateValue(left);
+  const rightDate = parseDateValue(right);
+
+  if (!leftDate || !rightDate) {
+    return true;
+  }
+
+  return leftDate > rightDate;
+}
+
+function parseDateValue(value: string) {
+  const trimmedValue = value.trim();
+
+  if (inputDatePattern.test(trimmedValue)) {
+    const [year, month, day] = trimmedValue.split("-").map(Number);
+
+    return parseDateParts(year, month, day);
+  }
+
+  if (manualDatePattern.test(trimmedValue)) {
+    const [day, month, year] = trimmedValue.split("/").map(Number);
+
+    return parseDateParts(year, month, day);
+  }
+
+  return null;
+}
+
+function parseDateParts(year: number, month: number, day: number) {
+  const date = new Date(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+function toApiDateValue(value: string) {
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return value;
+  }
+
+  return format(date, "yyyy-MM-dd");
+}
+
+function formatDateForDisplay(value: string) {
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return value;
+  }
+
+  return format(date, "dd/MM/yyyy");
+}
+
+function getSelectedCertificateTypeValue(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  return isKnownCertificateType(value) ? value : customCertificateTypeValue;
+}
+
+function isKnownCertificateType(value: string) {
+  return certificateTypes.some((type) => type === value);
 }
 
 function FormField({

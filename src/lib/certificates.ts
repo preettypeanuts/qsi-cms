@@ -15,7 +15,7 @@ const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 export const certificatePayloadSchema = z
   .object({
-    auditor: z.string().trim().min(2),
+    auditor: z.string().trim(),
     company: z.string().trim().min(3),
     expiryDate: z.string().regex(datePattern),
     id: z.string().trim().min(1),

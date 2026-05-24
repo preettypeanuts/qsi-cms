@@ -305,7 +305,7 @@ function CertificateManagementTable({
                   {certificate.status}
                 </Badge>
               </TableCell>
-              <TableCell>{certificate.auditor}</TableCell>
+              <TableCell>{certificate.auditor || "-"}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
                   <Button asChild variant="outline" size="icon-sm">

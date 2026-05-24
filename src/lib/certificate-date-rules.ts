@@ -1,4 +1,5 @@
 const inputDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+const manualDatePattern = /^\d{2}\/\d{2}\/\d{4}$/;
 
 export function getYesterdayDateValue() {
   return getRelativeDateValue(-1);
@@ -9,7 +10,14 @@ export function getTomorrowDateValue() {
 }
 
 export function isYesterdayDateValue(value: string) {
-  return value === getYesterdayDateValue();
+  const date = parseInputDate(value);
+  const yesterday = parseInputDate(getYesterdayDateValue());
+
+  if (!date || !yesterday) {
+    return false;
+  }
+
+  return date.getTime() === yesterday.getTime();
 }
 
 export function isAfterTodayDateValue(value: string) {
@@ -37,11 +45,22 @@ function getToday() {
 }
 
 function parseInputDate(value: string) {
-  if (!inputDatePattern.test(value)) {
-    return null;
+  if (inputDatePattern.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+
+    return parseDateParts(year, month, day);
   }
 
-  const [year, month, day] = value.split("-").map(Number);
+  if (manualDatePattern.test(value)) {
+    const [day, month, year] = value.split("/").map(Number);
+
+    return parseDateParts(year, month, day);
+  }
+
+  return null;
+}
+
+function parseDateParts(year: number, month: number, day: number) {
   const date = new Date(year, month - 1, day);
   date.setHours(0, 0, 0, 0);
 
