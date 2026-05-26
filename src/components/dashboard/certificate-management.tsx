@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Plus, Search, Trash2 } from "lucide-react";
+import { Edit3, Plus, QrCode, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -8,6 +8,7 @@ import type {
   CertificateRecord,
   CertificateStatus,
 } from "@/components/dashboard/dashboard-data";
+import { CertificateQrDialog } from "@/components/dashboard/certificate-qr-dialog";
 import { statusVariant } from "@/components/dashboard/dashboard-data";
 import { isCertificateExpired } from "@/components/dashboard/expired-certificates-widget";
 import { SearchField } from "@/components/dashboard/search-field";
@@ -58,6 +59,8 @@ export function CertificateManagement() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>("all");
   const [certificateToDelete, setCertificateToDelete] =
+    useState<CertificateRecord | null>(null);
+  const [certificateForQr, setCertificateForQr] =
     useState<CertificateRecord | null>(null);
 
   useEffect(() => {
@@ -212,6 +215,7 @@ export function CertificateManagement() {
             <CertificateManagementTable
               certificates={filteredCertificates}
               onDeleteClick={setCertificateToDelete}
+              onQrClick={setCertificateForQr}
             />
           ) : (
             <CertificateManagementEmptyState />
@@ -250,6 +254,16 @@ export function CertificateManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CertificateQrDialog
+        certificate={certificateForQr}
+        open={Boolean(certificateForQr)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCertificateForQr(null);
+          }
+        }}
+      />
     </>
   );
 }
@@ -257,13 +271,15 @@ export function CertificateManagement() {
 function CertificateManagementTable({
   certificates,
   onDeleteClick,
+  onQrClick,
 }: {
   certificates: CertificateRecord[];
   onDeleteClick: (certificate: CertificateRecord) => void;
+  onQrClick: (certificate: CertificateRecord) => void;
 }) {
   return (
     <div className="min-h-0 flex-1 overflow-y-scroll rounded-2xl border border-slate-100 max-h-[calc(100vh-220px)]">
-      <Table className="min-w-[1280px]">
+      <Table className="min-w-[1360px]">
         <TableHeader className="sticky top-0 z-10 bg-white">
           <TableRow>
             <TableHead>Nama Klien</TableHead>
@@ -308,6 +324,14 @@ function CertificateManagementTable({
               <TableCell>{certificate.auditor || "-"}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label={`Buat QR ${certificate.id}`}
+                    onClick={() => onQrClick(certificate)}
+                  >
+                    <QrCode className="size-4" />
+                  </Button>
                   <Button asChild variant="outline" size="icon-sm">
                     <Link
                       href={`/certificate/${certificate.id}/edit`}
