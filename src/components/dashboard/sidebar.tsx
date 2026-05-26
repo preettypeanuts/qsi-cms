@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,12 +23,17 @@ type DashboardSidebarProps = {
   allowCollapse?: boolean;
 };
 
+type CurrentUser = {
+  username: string;
+};
+
 export function DashboardSidebar({
   allowCollapse = true,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
     if (!allowCollapse) {
@@ -38,6 +43,34 @@ export function DashboardSidebar({
 
     setIsCollapsed(localStorage.getItem("qsi-sidebar-collapsed") === "true");
   }, [allowCollapse]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const result = (await response.json()) as { data?: CurrentUser };
+
+        if (isMounted && result.data?.username) {
+          setCurrentUser(result.data);
+        }
+      } catch {
+        // User info is supplemental; route protection still handles auth state.
+      }
+    }
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleToggleSidebar() {
     setIsCollapsed((currentValue) => {
@@ -194,15 +227,30 @@ export function DashboardSidebar({
 
       <div
         className={cn(
-          "mt-auto rounded-2xl bg-slate-50 p-4",
-          isCollapsed && "hidden",
+          "mt-auto border border-slate-100 bg-slate-50",
+          isCollapsed
+            ? "grid place-items-center rounded-2xl p-2"
+            : "rounded-2xl p-3",
         )}
+        title={
+          currentUser?.username
+            ? `Login sebagai ${currentUser.username}`
+            : "Memuat user login"
+        }
       >
-        <p className="font-medium text-sm">Perlu ditinjau</p>
-        <p className="mt-1 text-slate-500 text-xs">
-          Pantau notifikasi untuk melihat perubahan data dan masa berlaku
-          sertifikat.
-        </p>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-sky-700 shadow-sm">
+            <UserRound className="size-4" />
+          </div>
+          {isCollapsed ? null : (
+            <div className="min-w-0">
+              <p className="text-slate-500 text-xs">Login sebagai</p>
+              <p className="truncate font-semibold text-slate-900 text-sm">
+                {currentUser?.username ?? "Memuat user..."}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

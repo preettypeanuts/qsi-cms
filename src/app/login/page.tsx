@@ -48,8 +48,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_28rem),radial-gradient(circle_at_bottom_right,#e0f2fe,transparent_24rem),#f8fafc] p-4 text-slate-950">
-      <Card className="w-full max-w-md overflow-hidden">
+    <main className="relative isolate grid min-h-screen place-items-center overflow-hidden bg-slate-950 p-4 text-slate-950">
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_15%_15%,rgba(14,165,233,0.45),transparent_26rem),radial-gradient(circle_at_85%_15%,rgba(34,211,238,0.35),transparent_22rem),radial-gradient(circle_at_50%_95%,rgba(59,130,246,0.35),transparent_28rem),linear-gradient(135deg,#020617_0%,#0f172a_45%,#075985_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-size-[44px_44px] opacity-25" />
+      <div className="-top-24 -left-24 absolute -z-10 size-72 rounded-full bg-cyan-300/25 blur-3xl" />
+      <div className="-right-24 absolute bottom-8 -z-10 size-80 rounded-full bg-sky-400/20 blur-3xl" />
+
+      <Card className="w-full max-w-md overflow-hidden border-white/30 bg-white/90 shadow-2xl shadow-sky-950/30 backdrop-blur">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto grid size-16 place-items-center overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-lg shadow-sky-100">
             <Image
